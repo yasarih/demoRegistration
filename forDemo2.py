@@ -91,12 +91,26 @@ if login_success:
             if demo_id in df['Demo ID'].values:
                 selected_row = df[df['Demo ID'] == demo_id].iloc[0]
                 timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+                
+                # --- Count number of responses for this Demo ID ---
+                demo_responses = response_sheet.get_all_records()
+                demo_responses_df = pd.DataFrame(demo_responses)
+                demo_responses_for_id = demo_responses_df[demo_responses_df['Demo ID'] == demo_id]
+                
+                # --- Get the position of this teacher ---
+                position = len(demo_responses_for_id) + 1  # Position is based on the number of existing responses
+                
                 response_sheet.append_row([
                     timestamp,
                     name,
                     contact,   
                     demo_id
                 ])
-                st.success(f"✅ Successfully registered for Demo ID {demo_id}!")
+                
+                # Notify the user of their position
+                if position <= 3:
+                    st.success(f"✅ Successfully registered for Demo ID {demo_id}!.")
+                else:
+                    st.warning(f"❗ Request submitted! You are at position {position}, so the probability of getting this demo slot is low.")
             else:
                 st.error("❌ Invalid Demo ID. Please check the table above.")
