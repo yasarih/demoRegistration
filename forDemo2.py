@@ -11,7 +11,7 @@ creds = ServiceAccountCredentials.from_json_keyfile_dict(dict(creds_dict), scope
 client = gspread.authorize(creds)
 sheet = client.open("DemoSchedule")
 
-# --- Caching for each sheet ---
+# --- Cached Reads ---
 @st.cache_data(ttl=120)
 def get_slots_data():
     return pd.DataFrame(sheet.worksheet("DEMO AVAILABLE").get_all_records())
@@ -27,7 +27,6 @@ def get_teachers_data():
 # --- UI ---
 st.title("🎓 Demo Class Slot Registration")
 
-# --- Login Section ---
 st.subheader("Teacher Login")
 teacher_id = st.text_input("Teacher ID")
 teacher_name_part = st.text_input("Enter the first 4 letters of your name")
@@ -39,23 +38,21 @@ teacher_row = None
 if login_button and teacher_id and teacher_name_part:
     teachers_df = get_teachers_data()
     teacher_row = teachers_df[teachers_df['Teacher ID'] == teacher_id]
-    
+
     if not teacher_row.empty:
         full_teacher_name = teacher_row.iloc[0]['Teacher Name']
         if full_teacher_name[:4].lower() == teacher_name_part.lower():
             login_success = True
             st.success("✅ Login successful!")
         else:
-            st.error("❌ Incorrect name entered. Please check the first 4 letters.")
+            st.error("❌ Incorrect name entered.")
     else:
-        st.error("❌ Invalid Teacher ID. Please check your ID.")
+        st.error("❌ Invalid Teacher ID.")
 
-# --- Refresh Button ---
 if st.button("🔄 Force Refresh"):
     st.cache_data.clear()
     st.rerun()
 
-# --- Logged-in Area ---
 if login_success:
     df = get_slots_data()
 
@@ -84,24 +81,28 @@ if login_success:
 
         if submit:
             if demo_id in df['Demo ID'].values:
-                selected_row = df[df['Demo ID'] == demo_id].iloc[0]
                 timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-                
-                demo_responses_df = get_teacher_responses()
+
+                # LIVE read to get accurate position
+                live_response_sheet = sheet.worksheet("TEACHER'S RESPONSE")
+                demo_responses = live_response_sheet.get_all_records()
+                demo_responses_df = pd.DataFrame(demo_responses)
                 demo_responses_for_id = demo_responses_df[demo_responses_df['Demo ID'] == demo_id]
                 position = len(demo_responses_for_id) + 1
 
-                sheet.worksheet("TEACHER'S RESPONSE").append_row([
+                # Write response
+                live_response_sheet.append_row([
                     timestamp,
                     teacher_id,
                     contact,
                     demo_id
                 ])
+
                 st.cache_data.clear()
 
                 if position <= 3:
-                    st.success(f"✅ Successfully registered for Demo ID {demo_id}!")
+                    st.success(f"✅ Successfully registered for Demo ID {demo_id}! You are at position {position}.")
                 else:
-                    st.warning(f"❗ Request submitted! You are at position {position}, so the probability of getting this demo slot is low.")
+                    st.warning(f"📌 Registered. You are at position {position}. The chance is lower.")
             else:
-                st.error("❌ Invalid Demo ID. Please check the table above.")
+                st.error("❌ Invalid Demo ID.")
