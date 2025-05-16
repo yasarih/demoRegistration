@@ -12,7 +12,7 @@ creds_dict = st.secrets["gcp_service_account"]
 creds = ServiceAccountCredentials.from_json_keyfile_dict(dict(creds_dict), scope)
 client = gspread.authorize(creds)
 
-spreadsheet_id = "1v3vnUaTrKpbozrE1sZ7K5a-HtEttOPjMQDt4Z_Fivb4"
+spreadsheet_id = "13_ckKpI381EF2rCfVS28sn9cSlhxfsZaIOeUJJo3ngc"
 sheet = client.open_by_key(spreadsheet_id)
 slots_sheet = sheet.worksheet("DEMO AVAILABLE")
 response_sheet = sheet.worksheet("TEACHER'S RESPONSE")
