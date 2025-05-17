@@ -31,8 +31,8 @@ st.title("🎓 Demo Class Slot Registration")
 st.subheader("Teacher Login")
 
 if not st.session_state.logged_in:
-    teacher_id_input = st.text_input("Teacher ID")
-    password_input = st.text_input("Enter the last 4 digits of your Phone number")
+    teacher_id_input = st.text_input("Teacher ID").strip()
+    password_input = st.text_input("Enter the last 4 digits of your Phone number").strip()
 
     if st.button("Login"):
         teachers_data = teachers_sheet.get_all_records()
