@@ -32,7 +32,8 @@ st.subheader("Teacher Login")
 
 if not st.session_state.logged_in:
     teacher_id_input = st.text_input("Teacher ID").strip()
-    password_input = st.text_input("Enter the last 4 digits of your Phone number").strip()
+    password_input = st.text_input("Enter the last 4 digits of your Phone number").strip().zfill(4)
+
 
     if st.button("Login"):
         teachers_data = teachers_sheet.get_all_records()
@@ -41,8 +42,7 @@ if not st.session_state.logged_in:
 
         if not teacher_row.empty:
             full_teacher_name = teacher_row.iloc[0]['Teacher Name']
-            correct_password = str(teacher_row.iloc[0]['Password']).strip()
-
+            correct_password = str(teacher_row.iloc[0]['Password']).zfill(4).strip()
             if password_input == correct_password:
                 st.session_state.logged_in = True
                 st.session_state.teacher_id = teacher_id_input
