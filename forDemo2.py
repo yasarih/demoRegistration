@@ -37,11 +37,11 @@ if not st.session_state.logged_in:
     if st.button("Login"):
         teachers_data = teachers_sheet.get_all_records()
         teachers_df = pd.DataFrame(teachers_data)
-        teacher_row = teachers_df[teachers_df['Teacher ID'] == teacher_id_input]
+        teacher_row = teachers_df[teachers_df['Teacher ID'].astype(str).str.strip() == teacher_id_input]
 
         if not teacher_row.empty:
             full_teacher_name = teacher_row.iloc[0]['Teacher Name']
-            correct_password = str(teacher_row.iloc[0]['Password'])
+            correct_password = str(teacher_row.iloc[0]['Password']).strip()
 
             if password_input == correct_password:
                 st.session_state.logged_in = True
